@@ -138,11 +138,9 @@ async function getAIResponse(prompt: string): Promise<Array<{
       ],
     });
 
-    console.log(`Completions Response Object: ${response}`);
-
     const res = response.choices[0].message?.content?.trim() || "{}";
 
-    console.log(`Trimmed Response Message: ${res}`);
+    console.log(`Trimmed Response: ${res}`);
 
     return JSON.parse(res).reviews;
   } catch (error) {
