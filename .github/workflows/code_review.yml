@@ -4,8 +4,10 @@ on:
     types:
       - opened
       - synchronize
+      - ready_for_review
 permissions: write-all
 jobs:
+  if: '! github.event.pull_request.draft'
   code_review:
     runs-on: ubuntu-latest
     steps:
@@ -16,5 +18,9 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_API_MODEL: "gpt-4-1106-preview"
-          exclude: "yarn.lock,dist/**"
+          OPENAI_API_MODEL: "gpt-4-turbo-preview"
+          exclude: "yarn.lock, dist/**, **/*.json, **/*.md, **/*.yaml, **/*.xml"
+          custom_prompts: |
+            Do not worry about the verbosity of variable names, as long as they are somewhat descriptive.
+            Be sure to call out potential null pointer exceptions.
+            Be sure to call out concurrency issues and potential race conditions.
