@@ -4,17 +4,22 @@ on:
     types:
       - opened
       - synchronize
+      - ready_for_review
 permissions: write-all
 jobs:
   code_review:
+    if: '! github.event.pull_request.draft'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Code Review
-        uses: lukehollenback/ai-codereviewer@main
+        uses: lukehollenback/ai-codereviewer@main-luke
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_API_MODEL: "gpt-4-1106-preview"
-          exclude: "yarn.lock,dist/**"
+          exclude: "yarn.lock, dist/**, **/*.json, **/*.md, **/*.yaml, **/*.xml"
+          custom_prompts: |
+            Do not worry about the verbosity of variable naming conventions, as long as they are somewhat descriptive.
+            Be sure to call out potential null pointer exceptions.
