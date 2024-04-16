@@ -95,6 +95,9 @@ function analyzeCode(parsedDiff, prDetails, customPrompts) {
             for (const chunk of file.chunks) {
                 const prompt = createPrompt(file, chunk, prDetails, customPrompts);
                 const aiResponse = yield getAIResponse(prompt);
+                console.log(`Prompt = ${prompt}`);
+                console.log(`Response: ${aiResponse}`);
+                console.log("---------");
                 if (aiResponse) {
                     const newComments = createComment(file, chunk, aiResponse);
                     if (newComments) {
@@ -157,7 +160,6 @@ function getAIResponse(prompt) {
                     },
                 ] }));
             const res = ((_b = (_a = response.choices[0].message) === null || _a === void 0 ? void 0 : _a.content) === null || _b === void 0 ? void 0 : _b.trim()) || "{}";
-            console.log(`Trimmed Response: ${res}`);
             return JSON.parse(res).reviews;
         }
         catch (error) {

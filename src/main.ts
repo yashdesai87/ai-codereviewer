@@ -69,6 +69,11 @@ async function analyzeCode(
     for (const chunk of file.chunks) {
       const prompt = createPrompt(file, chunk, prDetails, customPrompts);
       const aiResponse = await getAIResponse(prompt);
+
+      console.log(`Prompt = ${prompt}`)
+      console.log(`Response: ${aiResponse}`)
+      console.log("---------")
+
       if (aiResponse) {
         const newComments = createComment(file, chunk, aiResponse);
         if (newComments) {
@@ -142,8 +147,6 @@ async function getAIResponse(prompt: string): Promise<Array<{
     });
 
     const res = response.choices[0].message?.content?.trim() || "{}";
-
-    console.log(`Trimmed Response: ${res}`);
 
     return JSON.parse(res).reviews;
   } catch (error) {
