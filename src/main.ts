@@ -4,6 +4,7 @@ import OpenAI from "openai";
 import { Octokit } from "@octokit/rest";
 import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
+import { parse } from "path";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
@@ -61,7 +62,15 @@ async function analyzeCode(
   prDetails: PRDetails
 ): Promise<Array<{ body: string; path: string; line: number }>> {
   const comments: Array<{ body: string; path: string; line: number }> = [];
-
+  if (parsedDiff.length > 10) {
+    // Too many files to review
+    comments.push({
+      body: "This pull request has too many files to review (more than 10). Please split it into smaller pull requests. This is for cost purposes.",
+      path: "",
+      line: 0,
+    });
+    return comments;
+  }
   for (const file of parsedDiff) {
     if (file.to === "/dev/null") continue; // Ignore deleted files
     for (const chunk of file.chunks) {
@@ -137,8 +146,10 @@ async function getAIResponse(prompt: string): Promise<Array<{
     });
 
     const finish_response = response.choices[0].finish_reason;
-    if (finish_response === 'length') {
-      console.log('The maximum context length has been exceeded. Please reduce the length of the code snippets.');
+    if (finish_response === "length") {
+      console.log(
+        "The maximum context length has been exceeded. Please reduce the length of the code snippets."
+      );
       return null;
     }
 
