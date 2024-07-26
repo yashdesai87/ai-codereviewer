@@ -136,6 +136,12 @@ async function getAIResponse(prompt: string): Promise<Array<{
       ],
     });
 
+    const finish_response = response.choices[0].finish_reason;
+    if (finish_response === 'length') {
+      console.log('The maximum context length has been exceeded. Please reduce the length of the code snippets.');
+      return null;
+    }
+
     const res = response.choices[0].message?.content?.trim() || "{}";
     return JSON.parse(res).reviews;
   } catch (error) {
