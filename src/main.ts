@@ -5,6 +5,7 @@ import { Octokit } from "@octokit/rest";
 import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
 import { parse } from "path";
+import { APIPromise } from "openai/core";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
@@ -132,11 +133,12 @@ async function getAIResponse(prompt: string): Promise<Array<{
     presence_penalty: 0,
   };
 
+  let response: OpenAI.Chat.Completions.ChatCompletion | null = null;
   try {
-    const response = await openai.chat.completions.create({
+    response = await openai.chat.completions.create({
       ...queryConfig,
       // return JSON if the model supports it:
-      response_format: { type: "json_object" },
+      response_format: { type: "json_object" as const },
       messages: [
         {
           role: "system",
@@ -156,7 +158,7 @@ async function getAIResponse(prompt: string): Promise<Array<{
     const res = response.choices[0].message?.content?.trim() || "{}";
     return JSON.parse(res).reviews;
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error:", error, response?.choices[0].message?.content);
     return null;
   }
 }
