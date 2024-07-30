@@ -92,7 +92,7 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
   return `You are an expert Nextjs developer. Your task is to review pull requests. Instructions:
 - Provide the response in following JSON format:  {"reviews": [{"lineNumber":  <line_number>, "reviewComment": "<review comment>"}]}
 - Do not give positive comments or compliments.
-- Do not comment about CSS. Focus on logic, performance, code quality and nextjs best practices.
+- Only comment about react and nextjs best practices. IMPORTANT: Ignore CSS.
 - Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
 - Write the comment in GitHub Markdown format.
 - Use the given description only for the overall context and only comment the code.
