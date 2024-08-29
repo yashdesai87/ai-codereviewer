@@ -4,6 +4,8 @@ import OpenAI from "openai";
 import { Octokit } from "@octokit/rest";
 import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
+import { parse } from "path";
+import { APIPromise } from "openai/core";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
@@ -63,7 +65,15 @@ async function analyzeCode(
   customPrompts: string
 ): Promise<Array<{ body: string; path: string; line: number }>> {
   const comments: Array<{ body: string; path: string; line: number }> = [];
-
+  if (parsedDiff.length > 10) {
+    // Too many files to review
+    comments.push({
+      body: "This pull request has too many files to review (more than 10). Please split it into smaller pull requests. This is for cost purposes.",
+      path: "",
+      line: 0,
+    });
+    return comments;
+  }
   for (const file of parsedDiff) {
     if (file.to === "/dev/null") continue; // Ignore deleted files
     for (const chunk of file.chunks) {
@@ -131,13 +141,11 @@ async function getAIResponse(prompt: string): Promise<Array<{
     presence_penalty: 0,
   };
 
+  let response: OpenAI.Chat.Completions.ChatCompletion | null = null;
   try {
-    const response = await openai.chat.completions.create({
+    response = await openai.chat.completions.create({
       ...queryConfig,
-      // return JSON if the model supports it:
-      ...(OPENAI_API_MODEL === "gpt-4o" || OPENAI_API_MODEL === "gpt-4-turbo-preview" || OPENAI_API_MODEL === "gpt-4-turbo" || OPENAI_API_MODEL === "gpt-3.5-turbo" || OPENAI_API_MODEL === "gpt-4-0125-preview" || OPENAI_API_MODEL === "gpt-4-1106-preview" || OPENAI_API_MODEL === "gpt-3.5-turbo-0125" || OPENAI_API_MODEL === "gpt-3.5-turbo-1106"
-        ? { response_format: { type: "json_object" } }
-        : {}),
+      response_format: { type: "json_object" as const },
       messages: [
         {
           role: "system",
@@ -146,11 +154,22 @@ async function getAIResponse(prompt: string): Promise<Array<{
       ],
     });
 
-    const res = response.choices[0].message?.content?.trim() || "{}";
+    const finish_response = response.choices[0].finish_reason;
+    if (finish_response === "length") {
+      console.log(
+        "The maximum context length has been exceeded. Please reduce the length of the code snippets."
+      );
+      return null;
+    }
 
-    return JSON.parse(res).reviews;
+    const res = response.choices[0].message?.content?.trim() || "{}";
+    if (res.startsWith("```json")) {
+      return JSON.parse(res.slice(7, -3)).reviews
+    } else {
+      return JSON.parse(res).reviews;
+    }
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error:", error, response?.choices[0].message?.content);
     return null;
   }
 }
