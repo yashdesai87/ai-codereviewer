@@ -11,6 +11,7 @@ automating the code review process.
 - Filters out files that match specified exclude patterns.
 - Supports custom prompting to hone the analysis in on specific things, and avoid others.
 - Easy to set up and integrate into your GitHub workflow.
+- **Now updated for Node 20 compatibility** (Node 16 reached EOL November 12, 2024).
 
 ## Setup
 
@@ -38,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: AI Code Reviewer
         uses: your-username/ai-codereviewer@main
@@ -69,10 +70,9 @@ the OpenAI API. It then generates review comments based on the AI's response and
 
 ## Tips & Tricks
 
-* The `gpt-4` model is powerful, but [relatively expensive](https://openai.com/pricing) and does not support
-  [JSON Mode](https://platform.openai.com/docs/guides/text-generation/json-mode) at the time of writing. Consider using
-  one of the turbo models — such as `gpt-4-turbo-preview` or `gpt-3.5-turbo` — to find the right balance between price
-  and performance.
+* The `gpt-4` model is powerful, but [relatively expensive](https://openai.com/pricing). Consider using
+  more cost-effective models such as `gpt-4o`, `gpt-4o-mini`, or `gpt-4-turbo` to find the right balance between price
+  and performance. All of these models support [JSON Mode](https://platform.openai.com/docs/guides/text-generation/json-mode).
 * Use `custom_prompts` to hone the action's analysis in on things you care about, and to avoid things you don't. There
   is no point, for example, in having the action repeat what your static analysis tooling does for you in real-time
   while coding.
