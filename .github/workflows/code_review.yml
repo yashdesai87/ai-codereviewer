@@ -7,7 +7,6 @@ on:
       - ready_for_review
 permissions: write-all
 jobs:
-  if: '! github.event.pull_request.draft'
   code_review:
     if: '! github.event.pull_request.draft'
     runs-on: ubuntu-latest
