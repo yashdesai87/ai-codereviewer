@@ -251,6 +251,8 @@ function main() {
         const comments = yield analyzeCode(filteredDiff, prDetails, customPrompts);
         if (comments.length > 0) {
             yield createReviewComment(prDetails.owner, prDetails.repo, prDetails.pull_number, comments);
+            // Fail the action if issues were found
+            core.setFailed(`AI Code Review found ${comments.length} issue(s) that need to be addressed.`);
         }
     });
 }

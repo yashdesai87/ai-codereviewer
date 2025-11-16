@@ -258,6 +258,9 @@ async function main() {
       prDetails.pull_number,
       comments
     );
+
+    // Fail the action if issues were found
+    core.setFailed(`AI Code Review found ${comments.length} issue(s) that need to be addressed.`);
   }
 }
 
